@@ -1,0 +1,34 @@
+Roadmap:
+
+The BitTorrent Client will be implemented in the following phases:
+
+Phase 1: Parsing the torrent file:
+
+In this phase the torrent file is parsed and the required information regarding the file to be downloaded is extracted. The extracted information is placed into a structure which will be used further. As part of Milestone1 we've executed this successfully. The torrent file is hardcoded in parse_torrent.c and just needs to be compiled and run for output structure.
+
+Phase 2: Handshake Protocol:
+
+This phase, independent of parsing, will be implemented where in communication between the peers will be estblished. Initially, an IP address(Masterpeer) is chosen to listen to any incoming connections. Once this IP address is bound, we will implement the handshake protocol:
+1. The connecting peer will send a message to the Masterpeer with the following information:
+   - First 20 bytes will have the ASCII value of number "19" and the string value “BitTorrent Protocol”.
+   - Next 8 bytes are reserved for any extensions to the protocol
+   - Next 20 bytes will be the SHA1 encoded info from the .torrent file.
+   - Next 20 bytes constitute peer ID of the peer(achieved by hashing its IP address and port number).
+2. Now, Masterpeer verifies the above values using the torrent file from its local torrent file and sends back the same message if the request is valid.
+
+Phase 3: File transfer request/response:
+
+We make an assumption here that Masterpeer is the lone peer having the file for now. The connecting peer will now make a request by sending a message for a part/whole file. As of now since there are only two peers in the network, the first connecting peer can only download the entire file from the Masterpeer. Using the structures for message requests, provided in the lab manual we will be able to execute this.
+
+Phase 4: Multiple peers(seeders/leechers):
+Below are the assumptions for the final stage of the project:
+1. There is no tracker components involved in the application. Hence tasks performed by a tracker are handled either by the application or the user.
+2. There is no list of seeders maintained by the application, neither static list nor dynamic list. 
+
+Below are the tasks involved in this final stage of the project:
+1. When a request for a particular file is sent to an IP address, the application will validate the request message. It will also calculate the hash values from the file and verify them with values in torrent file to confirm it has the complete file. If it has complete file then it will responed else it doesnot. Thus only users with complete file can become a seeder and users with partial file cannot.
+2. every request from the command line will validate whether the current IP address can be a seeder or leecher. If it is eligible to be a seeder, a seeder instance is launched. If it is a leecher, a leecher instance is launched.
+3. while seeder instance is handling multiple leechers we create one thread for each leecher whose has a simple task of sending the requested part of the file. All these threads execute concurrently and are independent of each other.
+4. similarly, when a leecher receives parts of single file from N seeders, it will do so by creating N threads which run parallely and communicate with each other to decide which part of file is to be requested from which seeder. 
+
+
